@@ -132,6 +132,8 @@ class LiveStatusQueryMetainfoFilterStack(LiveStatusStack):
             return self.get()
 
 
+
+
 class LiveStatusQueryMetainfo(object):
     """
     This class implements a more "machine-readable" form of a livestatus query.
@@ -319,6 +321,17 @@ class LiveStatusQueryMetainfo(object):
                     return True
         return False
 
+
+    def _apply_filter(self, eq_filters, filter_name, hint):
+        if len(eq_filters) == len([f for f in self.structured_data
+                                   if (f[0] == 'Filter' and f[1] == filter_name)]):
+            self.query_hints['target'] = hint
+            self.query_hints['host_name'] = [
+                f[3] for f in self.structured_data
+                if (f[0] == 'Filter' and f[2] == '=')
+            ][0]
+
+
     def categorize(self):
         """
         Analyze the formalized query (which table, which columns, which
@@ -405,6 +418,7 @@ class LiveStatusQueryMetainfo(object):
             if eq_filters == ['host_name']:
                 # Do we have exactly 1 Filter, which is 'host_name'?
                 # In this case, we want the services of this single host
+
                 if len(eq_filters) == len([f for f in self.structured_data if (f[0] == 'Filter' and f[1] == 'host_name')]):
                     self.query_hints['target'] = HINT_SERVICES_BY_HOST
                     self.query_hints['host_name'] = [f[3] for f in self.structured_data if (f[0] == 'Filter' and f[2] == '=')][0]
